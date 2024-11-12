@@ -8,9 +8,9 @@ GroundStationCommunication::GroundStationCommunication(TMCircularBuffer &DMARece
                                                        uint8_t *lowPriorityTransmitBuffer,
                                                        uint8_t *highPriorityTransmitBuffer,
                                                        int length)
-    : DMAReceiveBuffer(DMAReceiveBuffer),
-      lowPriorityTransmitBuffer(lowPriorityTransmitBuffer, length),
-      highPriorityTransmitBuffer(highPriorityTransmitBuffer, length) {}
+    : GroundStationCommunicationBase(DMAReceiveBuffer,
+                                     TMCircularBuffer(lowPriorityTransmitBuffer, length),
+                                     TMCircularBuffer(highPriorityTransmitBuffer, length)) {}
 
 GroundStationCommunication::~GroundStationCommunication() {
     // Destructor

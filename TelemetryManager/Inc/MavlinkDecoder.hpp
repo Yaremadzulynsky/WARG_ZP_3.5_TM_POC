@@ -19,6 +19,7 @@
 // #include <unordered_map>
 
 #include "Official_Mavlink_2_Library/common/mavlink.h"
+#include "ManagerCommunication.hpp"
 
 /**
  * Macro for registering a decoder function for a specific message type.
@@ -53,6 +54,7 @@ class MavlinkDecoder {
    public:
     // The number of messages that have been decoded - used for testing purposes.
     long messagesHandledSuccessfully = 0;
+    ManagerCommunication& pipe;
 
     // std::unordered_map<int, std::function<void(mavlink_message_t &)>> decodingFunctions;
     /**

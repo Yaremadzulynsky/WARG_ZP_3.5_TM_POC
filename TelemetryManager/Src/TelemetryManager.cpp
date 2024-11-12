@@ -2,12 +2,12 @@
 #include "TelemetryManager.hpp"
 
 // FreeRTOS task handle for the routineDataTransmission task
-TaskHandle_t routineDataTransmissionH = NULL;
+// TaskHandle_t routineDataTransmissionH = NULL;
 
-TelemetryManager::TelemetryManager(TMStateData& stateData, MAV_STATE& mav_state,
-                                   MAV_MODE_FLAG& mav_mode, GroundStationCommunication& GSC,
-                                   MavlinkTranslator& MT)
-    : stateData(stateData), mavState(mavState), mavMode(mavMode), GSC(GSC), MT(MT) {}
+TelemetryManager::TelemetryManager(TMStateData& stateData, MAV_STATE& mavState,
+                                   MAV_MODE_FLAG& mavMode, GroundStationCommunicationBase& GSC,
+                                   MavlinkTranslator& MT, CMSISAbstractorBase& cmsis)
+    : stateData(stateData), mavState(mavState), mavMode(mavMode), GSC(GSC), MT(MT), CMSIS(cmsis) {}
 
 TelemetryManager::~TelemetryManager() {
     // Destructor
@@ -19,6 +19,11 @@ TelemetryManager::~TelemetryManager() {
  *
  */
 void TelemetryManager::init() {
+    //queue up mavlink system boot message
+    mavlink_message_t msg;
+    mavlink_msg_sys_status_pack(1, 0, &msg, 0b111111111111111111111111, 0b111111111111111111111111, 0b111111111111111111111111, 500, 12000, -1, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    MT.addMavlinkMsgToByteQueue(msg, GSC.highPriorityTransmitBuffer);
+
     // register TM tasks with FreeRTOS
     spinUpTasks();
 }
@@ -32,7 +37,7 @@ void TelemetryManager::init() {
  */
 void routineDataTransmission(void* pvParameters) {
     // placeholder for now
-    uint8_t system_id = 0;
+    uint8_t system_id = 200;
     // placeholder for now
     uint8_t component_id = 0;
 
@@ -107,7 +112,7 @@ void routineDataTransmission(void* pvParameters) {
         mavlink_message_t heartbeatMsg = {0};
         // Pack the message with the actual data
         mavlink_msg_heartbeat_pack(system_id, component_id, &heartbeatMsg, MAV_TYPE_QUADROTOR,
-                                   MAV_AUTOPILOT_INVALID, tm->mavMode, 0, tm->mavState);
+                                MAV_AUTOPILOT_ARDUPILOTMEGA, tm->mavMode, 0, tm->mavState);
         // Add the packed message to the byte queue for later transmission
         tm->MT.addMavlinkMsgToByteQueue(heartbeatMsg, tm->GSC.highPriorityTransmitBuffer);
 
@@ -120,13 +125,12 @@ void routineDataTransmission(void* pvParameters) {
         tm->GSC.transmit(tm->GSC.highPriorityTransmitBuffer);
 
         // The delay between each state data packing and transmission
-        vTaskDelay(pdMS_TO_TICKS(500));  // Adjust the delay as necessary
+        tm->CMSIS.CMSISDelay(500);
     }
 }
 void TelemetryManager::spinUpTasks() {
     // Create a task that will send state data to the ground station every 500ms.
-    xTaskCreate(&routineDataTransmission, "routineDataTransmission", 512UL, this, 24,
-                &routineDataTransmissionH);
+    this->CMSIS.CMSISCreateTask(&routineDataTransmission, this, "routineDataTransmission");
 }
 
 void TelemetryManager::update() {
@@ -154,7 +158,7 @@ void TelemetryManager::update() {
 }
 
 void TelemetryManager::teardownTasks() {
-    if (eTaskGetState(routineDataTransmissionH) != eDeleted) {
-        vTaskDelete(routineDataTransmissionH);
-    }
+    // if (eTaskGetState(routineDataTransmissionH) != eDeleted) {
+    //     vTaskDelete(routineDataTransmissionH);
+    // }
 }

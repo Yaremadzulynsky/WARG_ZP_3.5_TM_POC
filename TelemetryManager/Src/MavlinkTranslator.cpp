@@ -12,7 +12,7 @@ void MavlinkTranslator::bytesToMavlinkMsg(TMCircularBuffer &rxFromGroundByteQueu
     // Take bytes in rxFromGroundByteQueue and convert them to Mavlink messages
     bool success = true;
     uint8_t bytesUntilEnd = 0;
-
+    std::cout << "Decoding messages from the ground station\n";
     while (success) {
         bytesUntilEnd = rxFromGroundByteQueue.bytesUntilMessageEnd(&success);
 

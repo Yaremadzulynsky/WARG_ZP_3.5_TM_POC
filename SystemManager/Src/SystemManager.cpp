@@ -17,6 +17,7 @@
 #include "sbus_defines.h"
 #include "sbus_receiver.hpp"
 #include "tim.h"
+#include "CMSISAbstractor.hpp"
 
 extern "C" {
 #include "app_fatfs.h"
@@ -116,8 +117,10 @@ TelemetryManager* SystemManager::setupTM() {
     // the buffer that stores the bytes received from the ground station.
     MavlinkTranslator MT;
 
+     CMSISAbstractor realCMSIS;
+
     
-    return new TelemetryManager(stateData, mavState, mavMode, GSC, MT);
+    return new TelemetryManager(stateData, mavState, mavMode, GSC, MT, realCMSIS);
 }
 
 // wrapper functions are needed as FreeRTOS xTaskCreate function does not accept functions that have

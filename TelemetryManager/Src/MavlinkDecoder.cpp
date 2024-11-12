@@ -4,7 +4,10 @@
 
 #include "MavlinkDecoder.hpp"
 
-MavlinkDecoder::MavlinkDecoder() {}
+#include <iostream>
+
+ManagerCommunication *pipe = new ManagerCommunication();
+MavlinkDecoder::MavlinkDecoder() : pipe(pipe) {}
 
 MavlinkDecoder::~MavlinkDecoder() {
     // no cleanup needed
@@ -55,6 +58,15 @@ bool handle_global_position_int(mavlink_message_t &msg) {
 bool handle_heartbeat(mavlink_message_t &msg) {
     mavlink_heartbeat_t payload;
     mavlink_msg_heartbeat_decode(&msg, &payload);
+    // do what you want with the payload
+    return true;
+}
+// must return true if the message was handled successfully
+bool handle_mode_set(mavlink_message_t &msg) {
+    mavlink_set_mode_t payload;
+    mavlink_msg_set_mode_decode(&msg, &payload);
+    std::cout << "Mode set to: " << payload.base_mode << std::endl;
+    pipe->send(msg, ManagerCommunicationBase::Destination::SYSTEM_MANAGER);
 
     // do what you want with the payload
     return true;
@@ -76,6 +88,11 @@ bool MavlinkDecoder::decodeMsg(mavlink_message_t &msg) {
             break;
         case MAVLINK_MSG_ID_HEARTBEAT:
             handledSuccessfully = handle_heartbeat(msg);
+            handledSuccessfully ? messagesHandledSuccessfully++ : messagesHandledSuccessfully;
+
+            break;
+        case MAVLINK_MSG_ID_SET_MODE:
+            handledSuccessfully = handle_mode_set(msg);
             handledSuccessfully ? messagesHandledSuccessfully++ : messagesHandledSuccessfully;
 
             break;

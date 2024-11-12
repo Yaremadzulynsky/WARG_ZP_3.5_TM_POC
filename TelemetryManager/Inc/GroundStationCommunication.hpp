@@ -12,7 +12,7 @@
  * @warning Any issues you think are important/foresee in the future?
  */
 
-#include "TMCircularBuffer.hpp"
+#include "GroundStationCommunicationBase.hpp"
 #include "drivers_config.hpp"
 #ifndef GROUNDSTATIONCOMMUNICATION_H
 #define GROUNDSTATIONCOMMUNICATION_H
@@ -24,7 +24,7 @@
  * because it allows us to define the behaviour of the RFD 900 send/receive function before its
  * implementation.
  */
-class GroundStationCommunication {
+class GroundStationCommunication : public GroundStationCommunicationBase {
    private:
     uint8_t internalBuffer_[RFD900_BUF_SIZE];
 
@@ -32,25 +32,30 @@ class GroundStationCommunication {
     /**
      * @brief Construct a new Ground Station Communication object. Do whatever needs to be done
      * here.
-     * @param DMAReceiveBuffer A TMCircularBuffer created FROM the rfd900_circular_buffer in the drivers_config.hpp file. 
+     * @param DMAReceiveBuffer A TMCircularBuffer created FROM the rfd900_circular_buffer in the
+     * drivers_config.hpp file.
      * @param lowPriorityTransmitBuffer A uint8_t buffer to be used by a TM CircularBuffer
      * @param highPriorityTransmitBuffer A uint8_t buffer to be used by a TM CircularBuffer
      * @param length The length of the buffers.
      */
-    GroundStationCommunication(TMCircularBuffer& DMAReceiveBuffer, uint8_t* lowPriorityTransmitBuffer, uint8_t* highPriorityTransmitBuffer, int length);
+      GroundStationCommunication(TMCircularBuffer& DMAReceiveBuffer, 
+                               uint8_t* lowPriorityTransmitBuffer, 
+                               uint8_t* highPriorityTransmitBuffer, 
+                               int length);
+
     ~GroundStationCommunication();
 
-    /*
-     * When the DMA interrupt is triggered the data should be stored in the DMAReceiveBuffer
-     * IF there is space.
-     */
-    TMCircularBuffer& DMAReceiveBuffer;
+    // /*
+    //  * When the DMA interrupt is triggered the data should be stored in the DMAReceiveBuffer
+    //  * IF there is space.
+    //  */
+    // TMCircularBuffer& DMAReceiveBuffer;
 
-    // low priority/Non routine Mavlink bytes to be sent to the ground station.
-    TMCircularBuffer lowPriorityTransmitBuffer;
+    // // low priority/Non routine Mavlink bytes to be sent to the ground station.
+    // TMCircularBuffer lowPriorityTransmitBuffer;
 
-    // high priority/Routine Mavlink bytes to be sent to the ground station.
-    TMCircularBuffer highPriorityTransmitBuffer;
+    // // high priority/Routine Mavlink bytes to be sent to the ground station.
+    // TMCircularBuffer highPriorityTransmitBuffer;
 
     /**
      * @brief This function sends data from a CircularBuffer to the ground station.

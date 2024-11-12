@@ -16,19 +16,22 @@
 #ifndef TELEMETRYMANAGER_H
 #define TELEMETRYMANAGER_H
 
-#define CREATE_GETTER(type, member) \
-    type get_##member() const { \
+#define CREATE_GETTER(type, member)                                              \
+    type get_##member() const {                                                  \
         return (member != nullptr) ? *member : std::numeric_limits<type>::max(); \
     }
 
 #define CREATE_SETTER(type, member) \
     void set_##member(type* value) { member = value; }
 
-#include "FreeRTOS.h"
-#include "GroundStationCommunication.hpp"
-#include "MavlinkTranslator.hpp"
-#include "task.h"
 #include <limits>
+
+#include "CMSISAbstractorBase.hpp"
+// #include "FreeRTOS.h"
+// #include "GroundStationCommunication.hpp"
+#include "GroundStationCommunicationBase.hpp"
+#include "MavlinkTranslator.hpp"
+// #include "task.h"
 
 struct TMStateData {
    private:
@@ -138,12 +141,14 @@ class TelemetryManager {
     MavlinkTranslator& MT;
 
     // The object that facilitates communication with the ground station
-    GroundStationCommunication& GSC;
+    GroundStationCommunicationBase& GSC;
 
     // System status flag (https://mavlink.io/en/messages/minimal.html#MAV_STATE).
     MAV_STATE& mavState;
     // System mode bitmap (https://mavlink.io/en/messages/minimal.html#MAV_MODE_FLAG).
     MAV_MODE_FLAG& mavMode;
+
+    CMSISAbstractorBase& CMSIS;
 
     /**
      * @brief Create and configure FreeRTOS tasks.
@@ -168,7 +173,8 @@ class TelemetryManager {
      * @param MT Object to translate MAVLink data
      */
     TelemetryManager(TMStateData& stateData, MAV_STATE& mavState, MAV_MODE_FLAG& mavMode,
-                     GroundStationCommunication& GSC, MavlinkTranslator& MT);
+                     GroundStationCommunicationBase& GSC, MavlinkTranslator& MT,
+                     CMSISAbstractorBase& cmsis);
 
     /**
      * @brief Destroy the Telemetry Manager object. Also destroys the FreeRTOS tasks associated with
